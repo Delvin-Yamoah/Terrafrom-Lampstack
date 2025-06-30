@@ -31,19 +31,11 @@ module "db" {
   key_name          = var.key_name
 }
 
-module "app" {
-  source            = "./modules/app"
-  subnet_id         = module.vpc.private_subnet_id
-  security_group_id = module.security.app_sg_id
-  db_host           = module.db.db_endpoint
-  key_name          = var.key_name
-}
-
 module "web" {
   source            = "./modules/web"
   subnet_id         = module.vpc.public_subnet_id
   security_group_id = module.security.web_sg_id
-  app_host          = module.app.app_private_ip
+  db_host           = module.db.db_endpoint
   key_name          = var.key_name
 }
 
@@ -53,8 +45,4 @@ output "web_public_ip" {
 
 output "db_private_ip" {
   value = module.db.db_endpoint
-}
-
-output "app_private_ip" {
-  value = module.app.app_private_ip
 }

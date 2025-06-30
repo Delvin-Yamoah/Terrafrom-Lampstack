@@ -8,8 +8,8 @@ variable "security_group_id" {
   type        = string
 }
 
-variable "app_host" {
-  description = "IP or hostname of the application server"
+variable "db_host" {
+  description = "IP or hostname of the database server"
   type        = string
 }
 

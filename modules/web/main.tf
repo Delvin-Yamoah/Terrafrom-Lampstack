@@ -9,23 +9,32 @@ resource "aws_instance" "web" {
   user_data = <<-EOF
               #!/bin/bash
               apt update -y
-              apt install -y apache2
+              apt install -y apache2 php libapache2-mod-php php-mysql
 
-              # Enable required modules
-              a2enmod proxy
-              a2enmod proxy_http
+              # Create a simple PHP page that connects to database
+              cat <<PHP > /var/www/html/index.php
+              <?php
+              \$servername = "${var.db_host}";
+              \$username = "admin";
+              \$password = "password123";
+              \$dbname = "lampdb";
 
-              # Pure proxy configuration - no PHP
-              cat <<APACHE > /etc/apache2/sites-available/000-default.conf
-              <VirtualHost *:80>
-                  ProxyPass / http://${var.app_host}/
-                  ProxyPassReverse / http://${var.app_host}/
-                  ProxyPreserveHost On
-              </VirtualHost>
-              APACHE
+              try {
+                  \$pdo = new PDO("mysql:host=\$servername;dbname=\$dbname", \$username, \$password);
+                  \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                  echo "<h1>LAMP Stack - 2 Tier Architecture</h1>";
+                  echo "<p>Database connection: <strong>Successful</strong></p>";
+                  echo "<p>Connected to: " . \$servername . "</p>";
+              } catch(PDOException \$e) {
+                  echo "<h1>LAMP Stack - 2 Tier Architecture</h1>";
+                  echo "<p>Database connection: <strong>Failed</strong></p>";
+                  echo "<p>Error: " . \$e->getMessage() . "</p>";
+              }
+              ?>
+              PHP
 
-              # Remove any existing PHP files
-              rm -rf /var/www/html/*
+              # Remove default index.html
+              rm -f /var/www/html/index.html
               
               systemctl restart apache2
               systemctl enable apache2
