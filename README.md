@@ -1,6 +1,6 @@
 # LAMP Stack Visit Counter - Modular Terraform
 
-## My Visit Counter App is available at http://3.255.163.211/
+## My Visit Counter App is available at http://54.155.3.92/
 
 ## Architecture
 
