@@ -1,10 +1,9 @@
-resource "aws_security_group" "web_sg" {
-  name        = "web-sg"
-  description = "Allow HTTP and SSH"
+# Web Tier Security Group
+resource "aws_security_group" "web" {
+  name_prefix = "${var.project_name}-web-"
   vpc_id      = var.vpc_id
 
   ingress {
-    description = "Allow HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -12,7 +11,6 @@ resource "aws_security_group" "web_sg" {
   }
 
   ingress {
-    description = "Allow SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -20,50 +18,69 @@ resource "aws_security_group" "web_sg" {
   }
 
   egress {
-    description = "Allow all outbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "web-sg"
-  }
+  tags = { Name = "${var.project_name}-web-sg" }
 }
 
-resource "aws_security_group" "db_sg" {
-  name        = "db-sg"
-  description = "Allow MySQL from web tier"
+# App Tier Security Group
+resource "aws_security_group" "app" {
+  name_prefix = "${var.project_name}-app-"
   vpc_id      = var.vpc_id
 
   ingress {
-    description     = "Allow MySQL from web SG"
-    from_port       = 3306
-    to_port         = 3306
+    from_port       = 80
+    to_port         = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.web_sg.id]
+    security_groups = [aws_security_group.web.id]
   }
 
   ingress {
-    description     = "Allow SSH from web SG"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.web_sg.id]
+    security_groups = [aws_security_group.web.id]
   }
 
   egress {
-    description = "Allow all outbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "db-sg"
-  }
+  tags = { Name = "${var.project_name}-app-sg" }
 }
 
+# DB Tier Security Group
+resource "aws_security_group" "db" {
+  name_prefix = "${var.project_name}-db-"
+  vpc_id      = var.vpc_id
 
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.app.id]
+  }
+
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.app.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = { Name = "${var.project_name}-db-sg" }
+}
